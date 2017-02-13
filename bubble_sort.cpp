@@ -7,7 +7,6 @@
 
 #include <iostream>
 #include <vector>
-#include <queue>
 using namespace std;
 
 /*冒泡排序
@@ -28,7 +27,7 @@ using namespace std;
     记录某次遍历时最后发生数据交换的位置,这个位置之后的数据显然已经有序,不用再排序了.
     因此通过记录最后发生数据交换的位置就可以确定下次循环的范围,此位置初始化为底层元素位置.
  */
- 
+
 void bubbleSort(vector<int> &arr)
 {
     int n = arr.size();
