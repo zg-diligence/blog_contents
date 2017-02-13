@@ -10,19 +10,51 @@
 #include <queue>
 using namespace std;
 
-//冒泡排序;
+/*冒泡排序
+
+ *算法流程:
+    1、比较相邻的元素,如果下层元素小于上层元素,则交换;
+    2、从底层向上,对每一对相邻元素重复步骤一,直到当前序列顶端;
+    3、每一轮交换之后,序列元素除去顶端元素,对剩余序列元素重复以上操作;
+    4、若当前序列只有一个元素,排序结束.
+
+ *性能:
+    时间O(N^2),空间O(1) 算法稳定
+
+ *优化:
+    记录某次遍历时最后发生数据交换的位置,这个位置之后的数据显然已经有序,不用再排序了.
+    因此通过记录最后发生数据交换的位置就可以确定下次循环的范围,此位置初始化为底层元素位置.
+ */
 void bubbleSort(vector<int> &arr)
 {
-    for(int i=0; i != arr.size()-1; ++i)
-        for(int j=arr.size()-1; j != i; --j)
+    int n = arr.size();
+    for(int i=0; i != n-1; ++i)
+        for(int j=n-1; j != i; --j)
             if(arr[j] < arr[j-1])
             {
-                int tmp = arr[j-1];
-                arr[j-1] = arr[j];
-                arr[j] = tmp;
+                int tmp = arr[j];
+                arr[j] = arr[j-1];
+                arr[j-1] = tmp;
             }
 }
 
+void bubbleSort_imp(vector<int> &arr)
+{
+    int n = arr.size();
+    for(int i=0; i != n-1;)
+    {
+        int next = n - 1;
+        for(int j=n-1; j != i; --j)
+            if(arr[j] < arr[j-1])
+            {
+                int tmp = arr[j];
+                arr[j] = arr[j-1];
+                arr[j-1] = tmp;
+                next = j;
+            }
+        i = next;
+    }
+}
 
 //快速排序;
 int findPivot(int i, int j, const vector<int> &arr)
@@ -269,6 +301,7 @@ int main()
     
     //quickSort(arr);
     //bubbleSort(arr);
+    bubbleSort_imp(arr);
     //selectionSort(arr);
     //heapSort(arr);
     //insertSort(arr);
