@@ -13,7 +13,7 @@ using namespace std;
 /*基数排序
 
  *算法思想:
-    通过比较关键字每个分量的值,对记录进行排序.
+    通过对关键字的每一个分量使用一种的稳定的排序方法,从低位到高位对序列进行排序.
 
  *算法流程:(设每个关键字有figure个分量,基数为10)
     1、将待排序记录装入一个队列A,设置10个初始空队列vector<queue<int>> q;
@@ -39,7 +39,8 @@ int radix(int value, int p)
     return value/power % 10;
 }
 
-void radixSort(vector<int> &arr, int figure)
+//采用桶的分配收集作为稳定排序方法
+void radixSort_1(vector<int> &arr, int figure)
 {
     //用队列保存;
     queue<int> A;
@@ -69,5 +70,35 @@ void radixSort(vector<int> &arr, int figure)
     {
         arr[i] = A.front();
         A.pop();
+    }
+}
+
+//采用计数排序作为稳定排序方法
+void radixSort_2(vector<int> &arr, int figure)
+{
+    for(int pass=1; pass <= figure; ++pass)
+    {
+        //分离关键字分量,找出最大值;
+        vector<int> comp(arr.size());
+        for(int i=0; i != arr.size(); ++i)
+            comp[i] = radix(arr[i], pass);
+        int max = comp[0];
+        for(int i=1; i != arr.size(); ++i)
+            if(comp[i] > max)
+                max = comp[i];
+
+        //计数;
+        vector<int> dev(arr.size()+1);
+        vector<int> count(max+1,0);
+        for(int i=0; i != arr.size(); ++i)
+            count[comp[i]]++;
+        for(int i=1; i <= max; ++i)
+            count[i] += count[i-1];
+        
+        //将记录输出到正确位置,并复制回原数组;
+        for(int i=arr.size()-1; i >= 0; --i)
+            dev[count[comp[i]]--] = arr[i];
+        for(int i=0; i != arr.size(); ++i)
+            arr[i] = dev[i+1];
     }
 }
