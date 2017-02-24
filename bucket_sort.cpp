@@ -21,42 +21,26 @@ using namespace std;
     3、对各个桶中的数据进行排序;
     4、按照次序把各个桶中的元素放回原数组,排序完成.
 
- *算法性能:k为桶的个数
+ *算法性能:
     时间O(n),空间O(n) 算法稳定
-  注:如果数据分布不均匀,当所有桶的大小与总的元素个数成线性关系时,桶排序仍然可在线性时间内完成.
+  注:如果数据分布不均匀,当所有桶大小的平方和与总的元素个数成线性关系时,桶排序仍然可在线性时间内完成.
  */
 
-//例如:假设输入数据在0-1000之间,100个桶,对每一个桶采用直接插入排序
+//例如:假设输入数据在0-1000之间,101个桶,对每一个桶采用直接插入排序
 void bucketSort(vector<int> &arr)
 {
+    //根据映射关系把元素分配到各个桶中;
     vector<vector<int>> buckets(101);
     for(auto num:arr)
         buckets[num/10].push_back(num);
 
+    //对各个桶中数据进行直接插入排序;
     for(auto &tmp:buckets)
         insertSort(tmp);
 
+    //按照次序将各个桶中的数据写回原数组;
     arr.clear();
     for(auto &tmp:buckets)
         for(auto num:tmp)
             arr.push_back(num);
-}
-
-int main()
-{
-    vector<int> arr;int num;
-
-    cout<<"请输入数据,以0结束:"<<endl;
-    while(cin >> num && num != 0)
-        arr.push_back(num);
-
-    bucketSort(arr);
-
-    cout<<"排序后:";
-    for(auto n:arr)
-        cout<<n<<" ";
-    cout<<endl;
-
-    system("pause");
-    return 0;
 }
