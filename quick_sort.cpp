@@ -24,7 +24,7 @@ using namespace std;
  *算法流程:
     1、选取基准元素;
     2、划分:比基准元素小的放在左边,大于等于放在右边;
-    3、对左右区间递归执行步骤1、2,直至各区间只有一个元素.
+    3、对左右区间递归执行步骤1、2,直至各区间只有一个元素或者序列规模足够小.
  
  *基准元素选取:
     方法1:取序列最左端元素;
@@ -32,13 +32,14 @@ using namespace std;
     方法3:从序列arr[i],...,arr[j]中,选择最先找到的两个不同关键字中的较大者.若无两个关键字不同,则已经有序.
  
  *算法性能:
-    时间O(nlogn),空间O(logn) 算法不稳定--平均性能
+    时间O(nlogn),空间O(logn) 算法不稳定
 
  *优化:
-    1、当初始序列是非递减序列时,快排性能下降到最坏情况O(n^2),基准元素策略采用方法2;
+    1、若采用方法1,当初始序列是非递减序列时,快排性能下降到最坏情况O(n^2),基准元素选取策略可采用方法2;
     2、在规模较小的情况下,采用直接插入排序.
  */
 
+//交换数组两个元素;
 void mySwap(int i, int j, vector<int> &arr)
 {
     int tmp = arr[i];
@@ -85,6 +86,7 @@ int partition(int i, int j, int pivot, vector<int> &arr)
             arr[left] = tmp;
         }
     }
+    return left;
 }
 
 void quickSort(int i, int j, vector<int> &arr)
