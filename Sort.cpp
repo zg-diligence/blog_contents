@@ -10,46 +10,8 @@
 #include <queue>
 using namespace std;
 
-//堆排序(降序)
-void pushDown(int first, int last, vector<int> &arr)
-{
-    int cur = first;
-    int value = arr[first];
-    while(cur <= last/2)
-    {
-        int next = cur * 2;
-        if(next < last && arr[next+1] < arr[next])
-            next++;
-        if(value <= arr[next])break;
-        arr[cur] = arr[next];
-        cur = next;
-    }
-    arr[cur] = value;
-}
-
-void heapSort(vector<int> &arr)
-{
-    vector<int> dev(arr.size()+1);
-    for(int i=1; i!=arr.size()+1; ++i)
-        dev[i]=arr[i-1];
-
-    for(int i=arr.size()/2; i>=1; --i)
-        pushDown(i,arr.size(),dev);
-
-    for(int i=arr.size(); i>=2; --i)
-    {
-        int tmp = dev[1];
-        dev[1] = dev[i];
-        dev[i] = tmp;
-        pushDown(1,i-1,dev);
-    }
-
-    for(int i=1; i!=arr.size()+1; ++i)
-        arr[i-1]=dev[i];
-}
-
-
-//直接插入排序;
+/*直接插入排序
+ */
 void insertSort(vector<int> &arr)
 {
     for(int i=1; i!= arr.size(); ++i)
@@ -186,12 +148,7 @@ int main()
     cout<<"请输入数据,以0结束:"<<endl;
     while(cin >> num && num != 0)
         arr.push_back(num);
-    
-    //quickSort(arr);
-    //bubbleSort(arr);
-    //bubbleSort_imp(arr);
-    //selectionSort(arr);
-    //heapSort(arr);
+
     //insertSort(arr);
     //shellSort(arr);
     //mergeSort_1(arr);
