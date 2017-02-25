@@ -105,7 +105,7 @@ void quickSort(int i, int j, vector<int> &arr)
 void quickSort_imp(int i, int j, vector<int> &arr)
 {
     if(j - i <= 5)
-        selectionSort(i, j, arr);       //序列规模小,采用直接插入排序;
+        insertSort(i, j, arr);       //序列规模小,采用直接插入排序;
     else
     {
         int pivot = arr[findPivot_2(i, j, arr)];    //选取基准元素;
