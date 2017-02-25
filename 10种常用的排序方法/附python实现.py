@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable = I0011, invalid-name, w0612, w0703, w0621, w0601, E0211
 
+# 插入排序
 def insertSort(arr):
     "直接插入"
     cnt = len(arr)
@@ -32,6 +33,7 @@ def insertSort_imp(arr):
                 arr[j] = arr[j-1]
             arr[low] = tmp
 
+# 冒泡排序
 def bubbleSort(arr):
     "冒泡排序"
     cnt = len(arr)
@@ -51,6 +53,7 @@ def bubbleSort_imp(arr):
                 nextValue_i = j
         i = nextValue_i
 
+# 希尔排序
 def shellSort(arr):
     "希尔排序"
     d, cnt = len(arr) // 2, len(arr)
@@ -63,6 +66,7 @@ def shellSort(arr):
             arr[j] = tmp
         d //= 2
 
+# 快速排序
 def partition(i, j, pivot, arr):
     "划分元素,小于放左边,大于等于放右边"
     left, right = i, j
@@ -129,6 +133,7 @@ def quickSort_imp(arr):
 
     quickSort_imp(0, len(arr)-1, arr)
 
+# 选择排序
 def selectionSort(arr):
     "选择排序"
     def selectionSort(left, right, arr):
@@ -142,6 +147,7 @@ def selectionSort(arr):
                 arr[minPos], arr[i] = arr[i], minValue
     selectionSort(0, len(arr)-1, arr)
 
+# 堆排序
 def heapSort(arr):
     "堆排序"
     def pushdown(first, last, arr):
@@ -167,8 +173,9 @@ def heapSort(arr):
     for i in range(1, len(arr)+1):          #复制回初始数组;
         arr[i-1] = dev[i]
 
+# 归并排序
 def merge(left, right):
-    "二路合并"
+    "二路归并"
     i, j = 0, 0
     result = []
     while i < len(left) and j < len(right):
@@ -204,7 +211,7 @@ def mergeSort_1(arr):
     return arr
 
 def mergeSort_2(arr):
-    "分治算法"
+    "自顶向下的分治算法"
     if len(arr) <= 1:   #递归终止条件
         return arr
     num = len(arr) // 2
@@ -212,6 +219,7 @@ def mergeSort_2(arr):
     right = mergeSort_2(arr[num:])
     return merge(left, right)   #二路归并
 
+# 基数排序
 def radixSort_1(arr, figure):
     "采用桶的分配与收集作为稳定排序方法"
     for i in range(0, figure):
@@ -244,6 +252,7 @@ def radixSort_2(arr, figure):
         for j in range(0, len(arr)):            #拷贝回原list
             arr[j] = dev[j+1]
 
+# 计数排序
 def countingSort(arr):
     "计数排序"
     if len(arr) == 0:
@@ -263,6 +272,7 @@ def countingSort(arr):
     for i in range(0, len(arr)):            #拷贝回原list
         arr[i] = dev[i+1]
 
+# 桶排序
 def bucketSort(arr):
     "桶排序"
     buckets = [[] for i in range(101)]
@@ -274,6 +284,4 @@ def bucketSort(arr):
     for lst in buckets:         #收集
         arr += lst
 
-arr = [int(n) for n in input("Please input some integers:").split()]
-radixSort_2(arr, 4)
-print("排序后:", arr)
+# arr = [int(n) for n in input("Please input some integers:").split()]
