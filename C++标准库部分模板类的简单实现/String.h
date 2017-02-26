@@ -1,5 +1,6 @@
 #ifndef STRING
 #define STRING
+
 #include <iostream>
 using namespace std;
 
