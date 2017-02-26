@@ -2,3 +2,4 @@
 *.DB
 *.exe
 C++/*
+Python/*
