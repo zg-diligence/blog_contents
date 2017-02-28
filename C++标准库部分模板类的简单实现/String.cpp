@@ -1,15 +1,23 @@
 #include "String.h"
 
-String::String(const char *str):_size(0),_string(nullptr)
+String::String(const char *str)
 {
 	if (str != nullptr)
 		operator=(str);
 }
-String::String(const String &str):_size(0), _string(nullptr)
+
+String::String(const String &str)
 {
 	if (str._size != 0)
-		operator=(str._string);
+		operator=(str);
 }
+
+String::String(String &&str)
+{
+	if (str._size != 0)
+		operator=(std::move(str));
+}
+
 String::~String()
 {
 	makeEmpty();
@@ -17,130 +25,148 @@ String::~String()
 
 String& String::operator=(const char *rhs)
 {
-	if (_string != rhs)           //self-assignment;
+	if (chars != rhs)	//check self-assignment.
 	{
 		makeEmpty();
-		_size = strSize(rhs);
-		_string = new char[4096];//Pay attention to this!!
-		copyStr(_string, rhs);
+		if (rhs != nullptr)
+		{
+			chars = new char[4096]; //set limit of the string size.
+			char *dest = chars;
+			const char *src = rhs;
+			while (*src != '\0')
+			{
+				*dest++ = *src++;
+				_size++;
+			}
+			*dest = '\0';
+		}
 	}
 	return *this;
 }
+
 String& String::operator=(const String &rhs)
 {
-	return operator=(rhs._string);
+	return operator=(rhs.chars);
+}
+
+String& String::operator=(String &&str)
+{
+	if (chars != str.chars)
+	{
+		makeEmpty();
+		_size = str._size;
+		chars = str.chars;
+		str._size = 0;
+		str.chars = nullptr;
+	}
+	return *this;
 }
 
 bool String::operator==(const char *rhs)const
 {
-	if (_string == nullptr && rhs == nullptr)return true;
-	if (_string == nullptr || rhs == nullptr)return false;
-	char *ls = _string, *rs = const_cast<char*>(rhs);
-	while (*ls != '\0'&& *rs != '\0')
-		if (*ls++ != *rs++)return false;
+	if (chars == nullptr && rhs == nullptr)return true;
+	if (chars == nullptr || rhs == nullptr)return false;
+	const char *ls = chars;
+	while (*ls != '\0' || *rhs != '\0')
+		if (*ls++ != *rhs++)return false;
 	return true;
 }
+
 bool String::operator!=(const char *rhs)const
 {
 	return !(*this == rhs);
 }
+
 bool String::operator==(const String &rhs)const
 {
 	if (_size != rhs._size)return false;
-	if (_size == 0 && rhs._size == 0)return true;
-	char *ls = _string, *rs = rhs._string;
-	while (*ls != '\0')
-		if (*ls++ != *rs++)return false;
-	return true;
+	return operator==(rhs.chars);
 }
+
 bool String::operator!=(const String &rhs)const
 {
 	return !(*this == rhs);
 }
 
-String String::operator+(const char *rhs)const
-{
-	String ret_str = *this;
-	ret_str += rhs;
-	return ret_str;
-}
 String String::operator+(const char c)const
 {
-	String ret_str = *this;
-	ret_str += c;
-	return ret_str;
+	String src = *this;
+	return src += c;
 }
+
+String String::operator+(const char *rhs)const
+{
+	String src = *this;
+	return src += rhs;
+}
+
 String String::operator+(const String &rhs)const
 {
-	String ret_str = *this;
-	ret_str += rhs;
-	return ret_str;
+	String src = *this;
+	return src += rhs;
+}
+
+String& String::operator +=(const char c)
+{
+	if (chars == nullptr)
+		chars = new char[4096];
+	*(chars + _size++) = c;
+	*(chars + _size) = '\0';
+	return *this;
 }
 
 String& String::operator +=(const char *rhs)
 {
-	if (_string != rhs)
-	{
-		if (rhs == nullptr)return *this;
-		if (_string == nullptr)return *this = rhs;
+	if (rhs == nullptr)return *this;
+	if (chars == nullptr)return *this = rhs;
 
-		int i = 0;
-		char *tail = _string + _size;
-		for (; *rhs != '\0'; ++i)
-			*tail++ = *rhs++;
-		*tail = '\0';
-		_size += i;
+	char *dest = chars + _size;
+	if (chars == rhs)	//self-assignment.
+	{
+		int tmp = _size;
+		while (tmp--)
+			*dest++ = *rhs++;
+		_size *= 2;
 	}
+	else
+	{
+		while (*rhs != '\0')
+		{
+			*dest++ = *rhs++;
+			_size++;
+		}
+	}
+	*dest = '\0';
 	return *this;
 }
-String& String::operator +=(const char c)
-{
-	char *rc = new char[2];
-	*rc = c; *(rc + 1) = '\0';
-	operator+=(rc);
-	return *this;
-}
+
 String& String::operator +=(const String &rhs)
 {
-	return operator+=(rhs._string);
+	return operator+=(rhs.chars);
 }
 
 void String::makeEmpty()
 {
-	if (_string != nullptr)
-		delete _string;
+	if (chars != nullptr)
+		delete chars;
 	_size = 0;
+	chars = nullptr;
 }
 
-size_t strSize(const char *s)
-{
-	if (s == nullptr)return 0;
-	int str_size = 0;
-	while (*s++ != '\0')
-		str_size++;
-	return str_size;
-}
-void copyStr(char *destination, const char *source)
-{
-	if (source == nullptr)return;
-	while (*source != '\0')
-		*destination++ = *source++;
-	*destination = '\0';
-}
 istream& operator>>(istream &cin, String &str)
 {
-	char pre_str[4096];
-	int i = 0;
+	char *tmp = new char[4096], *dest = tmp;
 	char c = getchar();
 	while (c != ' ' && c != '\n')
 	{
-		pre_str[i++] = c;
+		*dest++ = c;
 		c = getchar();
 	}
-	pre_str[i] = '\0';
-	str = pre_str;
+	*dest = '\0';
+	str = tmp;
 	return cin;
 }
+
 ostream& operator<<(ostream &cout, const String &str)
 {
 	if (str.size() == 0)return cout;
