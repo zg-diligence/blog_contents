@@ -104,7 +104,7 @@ public:
     protected:
         object *elem = nullptr;		//current element.
         object *buf = nullptr;		//buffer block current element belongs to.
-         map_node *nod = nullptr;	//map_node current element belongs to.
+        map_node *nod = nullptr;	//map_node current element belongs to.
         const Deque<object> *deq = nullptr;	//deque current element belongs to.
     };
 
