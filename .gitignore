@@ -1,6 +1,7 @@
 *.json
 *.DB
 *.exe
-C++/*
-Python/*
 *.TMP
+_C++/*
+_Python/*
+
