@@ -1,17 +1,17 @@
 /*
- * Copyright(c) 2017 Gang Zhang
- * All rights reserved.
- * Author:Gang Zhang
- * Date:2017.3.25
- */
+* Copyright(c) 2017 Gang Zhang
+* All rights reserved.
+* Author:Gang Zhang
+* Date:2017.3.25
+*/
 
 /*
- * Abstract:
- *   This article implements dynamic huffman coding compression.
- */
+* Abstract:
+*   This article implements dynamic huffman coding compression with vitter's algorithm.
+*/
 
-#ifndef DYHUFFMAN
-#define DYHUFFMAN
+#ifndef VITTER
+#define VITTER
 
 #include <iostream>
 #include <fstream>
@@ -20,9 +20,9 @@
 #include <queue>
 #include <map>
 using namespace std;
-#define MAX_SIZE 1024
+#define MAX_SIZE 513
 
-class DyHuffman
+class Vitter
 {
     /* node of the huffman tree. */
     struct Node
@@ -38,15 +38,15 @@ class DyHuffman
 public:
 
     /* constructor. */
-    DyHuffman(const string &file) :filePath(file)
-    { 
-        tree[root].ch = NYT; 
+    Vitter(const string &file) :filePath(file)
+    {
+        tree[root].ch = NYT;
         for (size_t i = 0; i != 256; ++i)
             position[unsigned char(i)] = -1;
     }
 
     /* deconstructor. */
-    ~DyHuffman() { delete[]tree; }
+    ~Vitter() { delete[]tree; }
 
     /* return compression ratio. */
     double compressionRatio()const { return ratio; }
@@ -62,7 +62,7 @@ public:
         string line;
         while (getline(in, line))
             text += line + '\n';
-        if(!line.empty())  //if the last line is not empty line.
+        if (!line.empty())  //if the last line is not empty line.
             text.pop_back();
         oldNum = text.size();
 
@@ -78,7 +78,7 @@ public:
         ifstream in(filePath, ios::binary);
         if (!in)  //path of the file is invalid.
             return false;
-        
+
         /* read compressed file. */
         size_t appendedBits = in.get();
         string buf, line;
@@ -87,13 +87,13 @@ public:
                 buf += char2binary(ch);
         appendedBits += 8;
         buf.erase(buf.size() - appendedBits, appendedBits);
-        
+
         /* decode the text and write it into the decompressed file. */
         decodeAndWrite(buf, unzipName);
         in.close();
         return true;
     }
-    
+
 private:
     double ratio = 0.0;              //compression ratio.
     long long oldNum = 0;            //number of chars the old file has.
@@ -105,6 +105,12 @@ private:
     size_t NYTIndex = MAX_SIZE - 1;  //position of NYT node in huffman tree.
     string filePath;
     string text;                     //save content of the source file.
+
+    /*check whether if the pointed node is a leaf.*/
+    bool isLeaf(size_t pos)
+    {
+        return tree[pos].left == 0 && tree[pos].right == 0;
+    }
 
     /* transform char into binary string. */
     string char2binary(unsigned char ch)
@@ -164,50 +170,44 @@ private:
         return tree[cur].ch;
     }
 
-    /* get position of node with the biggest number, if not found, return -1. */
-    int highestInBlock(size_t weight)
+    /* move the first node before the last node. */
+    void move(size_t first, size_t last)
     {
-        for (int i = MAX_SIZE - 1; i != NYTIndex; --i)
-            if (tree[i].weight == weight)
-                return i;
-        return -1;
-    }
-
-    /* swap two subtrees without changing number of nodes.*/
-    void swap(size_t first, size_t second)
-    {
-        /* both node cannot be the root. */
-        tree[tree[first].left].parent = second;
-        tree[tree[first].right].parent = second;
-        tree[tree[second].left].parent = first;
-        tree[tree[second].right].parent = first;
-
-        size_t tmp = tree[first].left;
-        tree[first].left = tree[second].left;
-        tree[second].left = tmp;
-
-        tmp = tree[first].right;
-        tree[first].right = tree[second].right;
-        tree[second].right = tmp;
-
-        /* there is no need to exchange weight. */
+        size_t ltmp = tree[first].left;
+        size_t rtmp = tree[first].right;
+        size_t weight = tree[first].weight;
         unsigned char ch = tree[first].ch;
-        tree[first].ch = tree[second].ch;
-        tree[second].ch = ch;
 
-        if(tree[first].left == 0 && tree[first].right == 0)
-            position[tree[first].ch] = first;
-        if(tree[second].left == 0 && tree[second].right == 0)
-            position[tree[second].ch] = second;
+        size_t pos = first;
+        while (pos < last)
+        {
+            tree[pos].left = tree[pos + 1].left;
+            tree[pos].right = tree[pos + 1].right;
+            tree[tree[pos].left].parent = pos; //never use tree[NYTIndex].parent.
+            tree[tree[pos].right].parent = pos;
+            tree[pos].ch = tree[pos + 1].ch;
+            tree[pos].weight = tree[pos + 1].weight;
+            pos++;
+        }
+
+        tree[last].left = ltmp;
+        tree[last].right = rtmp;
+        tree[ltmp].parent = last;
+        tree[rtmp].parent = last;
+        tree[last].ch = ch;
+        tree[last].weight = weight;
+
+        //update position of nodes.
+        for (size_t i = first; i <= last; ++i)
+            if (isLeaf(i) == true)
+                position[tree[i].ch] = i;
     }
 
     /* insert a new char into the tree, return position of old NYT node. */
     size_t spawn(unsigned char ch)
     {
         size_t oldNYT = NYTIndex;
-
-        tree[oldNYT].ch = '\0';
-        tree[oldNYT].weight = 1;
+        tree[oldNYT].ch = '\0'; //don't change weight of old NYT node.
         tree[oldNYT].right = oldNYT - 1;
         tree[oldNYT].left = oldNYT - 2;
 
@@ -216,41 +216,64 @@ private:
         tree[oldNYT - 1].parent = oldNYT;
         position[ch] = oldNYT - 1;
 
-        tree[oldNYT - 2].ch = NYT; //defaultly, weight of the new NYT is 0.
+        tree[oldNYT - 2].ch = NYT;
         tree[oldNYT - 2].parent = oldNYT;
         NYTIndex = oldNYT - 2;
         return oldNYT;
     }
 
+    size_t SlideAndIncrement(size_t p)
+    {
+        bool flag = !isLeaf(p);
+        size_t fp = tree[p].parent, cur = p;
+        size_t weight = tree[p].weight;
+
+        /* t is a leaf node, slide p in the tree higher than nodes of wt. */
+        while (cur != root && tree[cur].weight == weight) { cur++; }
+
+        /* t is an internal node, slide p in the tree higher than the leaf nodes of weight wt+1; */
+        if (flag && tree[cur].weight == weight + 1)
+            while (cur != root && tree[cur].weight == weight + 1 && isLeaf(cur)) { cur++; }
+        
+        if(p< --cur)
+            move(p, cur);
+        tree[cur].weight++;
+        if (flag == true)
+            return fp;
+        return tree[cur].parent;
+    }
+
     /* update the huffman tree. */
     void updateTree(unsigned char ch)
     {
-        int cur = position[ch];
-        if (cur != -1)
+        int pos = position[ch];
+        if (pos != -1) //already in the tree.
         {
-            int max = highestInBlock(tree[cur].weight);
-            if (cur != max && tree[cur].parent != max)
-            {   //cur might be the last char inserted into.
-                swap(cur, max);
-                cur = max;
+            /* swap it with leader of its block. */
+            size_t weight = tree[pos].weight, cur = pos;
+            while (cur != root && tree[cur].weight == weight && isLeaf(cur)) { cur++; }
+            if (pos != --cur)
+            {
+                unsigned char ch = tree[pos].ch;
+                tree[pos].ch = tree[cur].ch;
+                tree[cur].ch = ch;
+                position[tree[pos].ch] = pos;
+                position[tree[cur].ch] = cur;
+                pos = cur;  //update current node as the leader node.
             }
-            tree[cur].weight++;
-        }
+            if (pos == NYTIndex + 1)  //if current node is sibling of NYT node.
+            {
+                tree[pos].weight++;
+                pos = tree[pos].parent;
+            }
+        } 
         else
-            cur = spawn(ch); //insert a new char into the tree.
+            pos = spawn(ch);
 
         /* refresh the huffman tree until root recursively. */
-        while (cur != root)  
-        {
-            cur = tree[cur].parent;
-            int max = highestInBlock(tree[cur].weight);
-            if (cur != max && tree[cur].parent != max)
-            {
-                swap(cur, max);
-                cur = max;
-            }
-            tree[cur].weight++;
-        }
+        while (pos != root)       
+            pos = SlideAndIncrement(pos);
+        tree[root].weight++;
     }
 
     /* encode the text and write it into the compressed file. */
@@ -266,7 +289,7 @@ private:
         string buf;  //buffer of encoded string.
         for (unsigned char ch : text)
         {
-            int pos = position[ch];  
+            int pos = position[ch];
             if (pos != -1)
                 buf += char2code(pos);
             else
@@ -279,7 +302,7 @@ private:
                 newNum++;
             }
         }
-        
+
         /* check if it neccessary to append bits at end of the code. */
         size_t appendedBits = 0;
         if (!buf.empty())
@@ -331,29 +354,30 @@ private:
         out.close();
     }
 
-    /* debug print the huffman tree layer by layer.*/
+    /* debug: print the huffman tree layer by layer. */
     void print()
     {
         queue<int> q;
         q.push(root);
         size_t cur = root;
-        size_t cnt = 0;
-
         cout << "\n-------------------------------------" << endl;
         while (!q.empty())
         {
-            cnt++;
             cur = q.front(); q.pop();
             if (tree[cur].left != 0)
                 q.push(tree[cur].left);
             if (tree[cur].right != 0)
                 q.push(tree[cur].right);
+              
             cout << cur << "(" << tree[cur].weight << ")\t" << tree[cur].parent << "\t"
-                << tree[cur].left << "\t" << tree[cur].right << endl;
+                << tree[cur].left << "\t" << tree[cur].right;
+            if (tree[cur].left == 0 && tree[cur].right == 0)
+                cout << '\t' << tree[cur].ch;
+            cout << endl;
         }
-        cout << "***cnt = " << cnt << "***" << endl;
+        cout << "***cnt = " << MAX_SIZE - NYTIndex + 1 << "***" << endl;
         cout << "\n-------------------------------------" << endl;
     }
 };
 
-#endif // !DYHUFFMAN
+#endif

@@ -7,7 +7,7 @@
 
 /*
  * Abstract:
- *   This article implements k forks huffman coding compression.
+ *   This article implements k-forks huffman coding compression.
  */
 
 #ifndef KHUFFMAN
